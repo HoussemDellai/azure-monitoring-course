@@ -4,6 +4,10 @@ resource "azurerm_monitor_data_collection_rule" "dcr_windows" {
   location            = azurerm_resource_group.rg.location
   kind                = "Windows"
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   destinations {
     log_analytics {
       workspace_resource_id = azurerm_log_analytics_workspace.law.id

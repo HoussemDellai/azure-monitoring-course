@@ -4,6 +4,10 @@ resource "azurerm_monitor_data_collection_rule" "dcr_linux" {
   location            = azurerm_resource_group.rg.location
   kind                = "Linux"
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   destinations {
     log_analytics {
       workspace_resource_id = azurerm_log_analytics_workspace.law.id
@@ -27,6 +31,29 @@ resource "azurerm_monitor_data_collection_rule" "dcr_linux" {
   }
 
   data_flow {
+    streams       = ["Custom-Json-MyApplication_CL"]
+    destinations  = ["destination-log"]
+    output_stream = "Custom-MyApplication_CL"
+    transform_kql = "source"
+    #     transform_kql = <<EOT
+    #     source
+    #     | project TimeGenerated = now(),
+    #               Computer = "",
+    #               FilePath = "",
+    #               Message = "",
+    #               Level = "",
+    #               SourceLine = "",
+    #               ThreadId = 0,
+    #               RawData = "",
+    #               FixedValue = ""
+    #   EOT
+    # transform_kql = "source | project TimeGenerated = Timestamp, ThreadId, SourceLine, Level, Message, FixedValue"
+    # transform_kql = "source | project TimeGenerated = now()" # "source | project TimeGenerated = Time, Computer, Message = AdditionalContext"
+    # transform_kql = "source | project TimeGenerated = now() | project LogMessage = 'RawData'" # "source | project TimeGenerated = Time, Computer, Message = AdditionalContext"
+    # transform_kql = "source | project d = split(RawData,",") | project TimeGenerated=todatetime(d[0]), Code=toint(d[1]), Severity=tostring(d[2]), Module=tostring(d[3]), Message=tostring(d[4])"
+  }
+
+  data_flow {
     streams      = ["Microsoft-Syslog"]
     destinations = ["destination-log"]
   }
@@ -45,20 +72,16 @@ resource "azurerm_monitor_data_collection_rule" "dcr_linux" {
     }
 
     log_file {
-      name          = "datasource-logfile"
-      format        = "text"
-      streams       = ["Custom-MyTableRawData"]
-      file_patterns = ["C:\\JavaLogs\\*.log"]
-      settings {
-        text {
-          record_start_timestamp_format = "ISO 8601"
-        }
-      }
+      name          = "Custom-Json-MyApplication_CL"
+      format        = "json" # "text"
+      streams       = ["Custom-Json-MyApplication_CL"]
+      file_patterns = ["/var/log/myapplication.log"]
     }
 
     performance_counter {
       name    = "CustomPerfCounters"
       streams = ["Microsoft-Perf"]
+      sampling_frequency_in_seconds = 30
       counter_specifiers = [
         "Processor(*)\\% Processor Time",
         "Processor(*)\\% Idle Time",
@@ -74,7 +97,42 @@ resource "azurerm_monitor_data_collection_rule" "dcr_linux" {
         "System(*)\\Unique Users",
         "System(*)\\CPUs"
       ]
-      sampling_frequency_in_seconds = 30
+    }
+  }
+
+  stream_declaration {
+    stream_name = "Custom-Json-MyApplication_CL"
+    column {
+      name = "TimeGenerated"
+      type = "datetime"
+    }
+    column {
+      name = "Computer"
+      type = "string"
+    }
+    column {
+      name = "FilePath"
+      type = "string"
+    }
+    column {
+      name = "Level"
+      type = "string"
+    }
+    column {
+      name = "LogMessage"
+      type = "string"
+    }
+    column {
+      name = "MachineName"
+      type = "string"
+    }
+    column {
+      name = "MachineIP"
+      type = "string"
+    }
+    column {
+      name = "FixedValue"
+      type = "string"
     }
   }
 }

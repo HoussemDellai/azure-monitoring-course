@@ -23,7 +23,7 @@ resource "azurerm_linux_virtual_machine" "vm_linux" {
   name                            = "vm-linux"
   resource_group_name             = azurerm_resource_group.rg.name
   location                        = azurerm_resource_group.rg.location
-  size                            = "Standard_D4ads_v6"
+  size                            = "Standard_D2ads_v6"
   disable_password_authentication = false
   admin_username                  = "azureuser"
   admin_password                  = "@Aa123456789"
@@ -32,7 +32,7 @@ resource "azurerm_linux_virtual_machine" "vm_linux" {
   eviction_policy                 = "Delete"
   disk_controller_type            = "NVMe" # "SCSI" # "IDE" # "SCSI" is the default value. "NVMe" is only supported for Ephemeral OS Disk.
 
-  # custom_data = filebase64("./install-mitmproxy-with-wireguard.sh")
+  custom_data = filebase64("./generate-logs.sh")
 
   identity {
     type = "SystemAssigned"
@@ -42,7 +42,7 @@ resource "azurerm_linux_virtual_machine" "vm_linux" {
     name                 = "os-disk-linux"
     caching              = "ReadOnly"        # "ReadWrite" # None, ReadOnly and ReadWrite.
     storage_account_type = "StandardSSD_LRS" # "Standard_LRS"
-    disk_size_gb         = 128
+    disk_size_gb         = 64
 
     diff_disk_settings {
       option    = "Local"    # Specifies the Ephemeral Disk Settings for the OS Disk. At this time the only possible value is Local.
