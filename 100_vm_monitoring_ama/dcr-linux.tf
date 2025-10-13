@@ -107,6 +107,10 @@ resource "azurerm_monitor_data_collection_rule" "dcr_linux" {
       type = "datetime"
     }
     column {
+      name = "DateTime"
+      type = "string"
+    }
+    column {
       name = "Computer"
       type = "string"
     }

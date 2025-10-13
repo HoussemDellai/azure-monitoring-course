@@ -15,6 +15,10 @@ resource "azapi_resource" "table" {
             type = "datetime"
           },
           {
+            name = "DateTime"
+            type = "string"
+          },
+          {
             name = "Computer"
             type = "string"
           },
